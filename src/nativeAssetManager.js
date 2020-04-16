@@ -52,8 +52,8 @@ const assetTypeMapping = {
   }
 }
 
-const DEFAULT_CACHE_HOST = 'prebid-server.rubiconproject.com';
-const DEFAULT_CACHE_PATH = '/cache';
+const DEFAULT_CACHE_HOST = 'prebid.adnxs.com';
+const DEFAULT_CACHE_PATH = '/pbc/v1/cache';
 
 export function newNativeAssetManager(win) {
   let callback;
