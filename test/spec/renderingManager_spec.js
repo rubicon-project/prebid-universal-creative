@@ -157,7 +157,7 @@ describe('renderingManager', function() {
       };
       requests[0].respond(200, {}, JSON.stringify(response));
       expect(writeHtmlSpy.callCount).to.equal(1);
-      expect(sendRequestSpy.args[0][0]).to.equal('https://prebid.adnxs.com/pbc/v1/cache?uuid=123');
+      expect(sendRequestSpy.args[0][0]).to.equal('https://prebid-server.rubiconproject.com/cache?uuid=123');
     });
   });
 
