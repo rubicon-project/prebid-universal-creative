@@ -1,7 +1,7 @@
 /*
  * Script to handle firing impression and click trackers from native teamplates
  */
-import {newNativeAssetManager} from './nativeAssetManager';
+import { newNativeAssetManager } from './nativeAssetManager';
 import {prebidMessenger} from './messaging.js';
 
 const AD_ANCHOR_CLASS_NAME = 'pb-click';
@@ -48,7 +48,7 @@ export function newNativeRenderManager(win) {
   }
 
   // START OF MAIN CODE
-  let renderNativeAd = function(nativeTag) {
+  let renderNativeAd = function(doc, nativeTag) {
     window.pbNativeData = nativeTag;
     sendMessage = prebidMessenger(nativeTag.pubUrl, win);
     const nativeAssetManager = newNativeAssetManager(window, nativeTag.pubUrl);
