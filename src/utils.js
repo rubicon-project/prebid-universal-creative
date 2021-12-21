@@ -1,4 +1,4 @@
-const postscribe = require('postscribe');
+import postscribe from 'postscribe';
 import * as domHelper from './domHelper';
 
 /**
@@ -115,7 +115,7 @@ export function getCreativeComment(bid) {
  * @param {*} bid
  */
 export function getCreativeCommentMarkup(bid) {
-  let creativeComment = exports.getCreativeComment(bid);
+  let creativeComment = getCreativeComment(bid);
   let wrapper = document.createElement('div');
   wrapper.appendChild(creativeComment);
   return wrapper.innerHTML;
