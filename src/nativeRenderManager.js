@@ -61,9 +61,9 @@ export function newNativeRenderManager(win) {
         scr.id = 'pb-native-renderer';
         document.body.appendChild(scr);
       }
-      nativeAssetManager.loadAssets(nativeTag.adId,fireNativeCallback);
+      nativeAssetManager.loadAssets(targetingData.adId, fireNativeCallback);
       fireNativeCallback();
-      fireNativeImpTracker(nativeTag.adId);
+      fireNativeImpTracker(targetingData.adId);
     } else {
       console.warn('Prebid Native Tag object was missing \'adId\'.');
     }

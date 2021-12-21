@@ -1,5 +1,5 @@
-import { getCreativeCommentMarkup, triggerPixel, createTrackPixelHtml, loadScript, getCreativeComment, writeAdUrl, transformAuctionTargetingData, sendRequest, getUUID, writeAdHtml } from './utils';
-import { isSafeFrame } from './environment';
+import { getCreativeCommentMarkup, triggerPixel, createTrackPixelHtml, loadScript, getCreativeComment, writeAdUrl, transformAuctionTargetingData, sendRequest, getUUID } from './utils';
+import { isSafeFrame, isMobileApp } from './environment';
 import { insertElement } from './domHelper';
 
 const DEFAULT_CACHE_HOST = 'prebid.adnxs.com';
@@ -14,7 +14,7 @@ const DEFAULT_CACHE_PATH = '/pbc/v1/cache';
  * @param {string} hbPb final price of the winning bid
  * @param {Bool} isMobileApp flag to detect mobile app
  */
-export function renderAmpOrMobileAd(dataObject, isMobileApp) {
+export function renderAmpOrMobileAd(dataObject) {
   const targetingData = transformAuctionTargetingData(dataObject);
   let { cacheHost, cachePath, uuid, size, hbPb } = targetingData;
   uuid = uuid || '';
@@ -28,7 +28,7 @@ export function renderAmpOrMobileAd(dataObject, isMobileApp) {
     let adUrl = `${getCacheEndpoint(cacheHost, cachePath)}?uuid=${uuid}`;
     //register creative right away to not miss initial geom-update
     updateIframe(size);
-    sendRequest(adUrl, responseCallback(isMobileApp, hbPb));
+    sendRequest(adUrl, responseCallback(isMobileApp(targetingData.env), hbPb));
   }
 }
 
