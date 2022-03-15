@@ -110,7 +110,6 @@ export function renderCrossDomain(win, adId, pubAdServerDomain = '', pubUrl) {
       }
     }
 
-
     function requestAdFromPrebid() {
       let message = {
         message: 'Prebid Request',

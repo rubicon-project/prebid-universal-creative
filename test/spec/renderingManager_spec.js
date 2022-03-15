@@ -76,11 +76,8 @@ describe('renderingManager', function() {
     let iframeStub;
     let triggerPixelSpy;
     let mockWin;
-    let env;
-    let renderObject;
     let ucTagData;
     let mockIframe;
-    let eventSource;
 
     beforeEach(function(){
       mockIframe = createMockIframe();
@@ -147,13 +144,13 @@ describe('renderingManager', function() {
             info: {
               reason: 'preventWritingOnMainDocument'
             }
-          })
+          });
         });
 
         it('on ads that have no markup or adUrl', () => {
           mockPrebidResponse({
             adId: '123',
-          })
+          });
           expectEventMessage({
             adId: '123',
             event: RENDER_FAILED,
@@ -165,7 +162,7 @@ describe('renderingManager', function() {
 
         it('on exceptions', () => {
           iframeStub.callsFake(() => {
-            throw new Error()
+            throw new Error();
           });
           mockPrebidResponse({
             adId: '123',
@@ -179,7 +176,7 @@ describe('renderingManager', function() {
               reason: 'exception'
             }
           });
-        })
+        });
       });
       describe('should post AD_RENDER_SUCCEEDED', () => {
         it('on ad with markup', () => {
