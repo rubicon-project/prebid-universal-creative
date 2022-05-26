@@ -53,19 +53,20 @@ export function newNativeRenderManager(win) {
     sendMessage = prebidMessenger(nativeTag.pubUrl, win);
     const nativeAssetManager = newNativeAssetManager(window, nativeTag.pubUrl);
 
-    if (targetingData.hasOwnProperty('adId')) {
-
-      if (nativeTag.hasOwnProperty('rendererUrl') && !nativeTag.rendererUrl.match(/##.*##/i)) {
-        const scr = document.createElement('SCRIPT');
-        scr.src = nativeTag.rendererUrl,
-        scr.id = 'pb-native-renderer';
+    if (nativeTag.hasOwnProperty("adId")) {
+      if (
+        nativeTag.hasOwnProperty("rendererUrl") &&
+        !nativeTag.rendererUrl.match(/##.*##/i)
+      ) {
+        const scr = document.createElement("SCRIPT");
+        (scr.src = nativeTag.rendererUrl), (scr.id = "pb-native-renderer");
         document.body.appendChild(scr);
       }
-      nativeAssetManager.loadAssets(targetingData.adId, fireNativeCallback);
+      nativeAssetManager.loadAssets(nativeTag.adId, fireNativeCallback);
       fireNativeCallback();
-      fireNativeImpTracker(targetingData.adId);
+      fireNativeImpTracker(nativeTag.adId);
     } else {
-      console.warn('Prebid Native Tag object was missing \'adId\'.');
+      console.warn("Prebid Native Tag object was missing 'adId'.");
     }
   }
 
