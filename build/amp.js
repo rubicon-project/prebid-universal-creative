@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -68,17 +68,362 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["i"] = triggerPixel;
+/* harmony export (immutable) */ __webpack_exports__["a"] = getEmptyIframe;
+/* harmony export (immutable) */ __webpack_exports__["b"] = insertElement;
+/**
+ * domHelper: a collection of helpful dom things
+ */
+
+/**
+ * returns a empty iframe element with specified height/width
+ * @param {Number} height height iframe set to 
+ * @param {Number} width width iframe set to
+ * @returns {Element} iframe DOM element 
+ */
+function getEmptyIframe(height, width) {
+  var frame = document.createElement('iframe');
+  frame.setAttribute('frameborder', 0);
+  frame.setAttribute('scrolling', 'no');
+  frame.setAttribute('marginheight', 0);
+  frame.setAttribute('marginwidth', 0);
+  frame.setAttribute('TOPMARGIN', 0);
+  frame.setAttribute('LEFTMARGIN', 0);
+  frame.setAttribute('allowtransparency', 'true');
+  frame.setAttribute('width', width);
+  frame.setAttribute('height', height);
+  return frame;
+}
+/**
+* Insert element to passed target
+* @param {object} elm
+* @param {object} doc
+* @param {string} target
+*/
+
+function insertElement(elm, doc, target) {
+  doc = doc || document;
+  var elToAppend;
+
+  if (target) {
+    elToAppend = doc.getElementsByTagName(target);
+  } else {
+    elToAppend = doc.getElementsByTagName('head');
+  }
+
+  try {
+    elToAppend = elToAppend.length ? elToAppend : doc.getElementsByTagName('body');
+
+    if (elToAppend.length) {
+      elToAppend = elToAppend[0];
+      elToAppend.insertBefore(elm, elToAppend.firstChild);
+    }
+  } catch (e) {}
+}
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__mobileAndAmpRender__ = __webpack_require__(2);
+/**
+ * creative.js
+ *
+ * This file is inserted into the prebid creative as a placeholder for the winning prebid creative. It should support the following format:
+ * - AMP creatives
+ */
+
+window.ucTag = window.ucTag || {};
+
+window.ucTag.renderAd = function (doc, dataObject) {
+  Object(__WEBPACK_IMPORTED_MODULE_0__mobileAndAmpRender__["a" /* renderAmpOrMobileAd */])(dataObject);
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = renderAmpOrMobileAd;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__environment__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__domHelper__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__postscribeRender__ = __webpack_require__(5);
+
+
+
+
+var DEFAULT_CACHE_HOST = 'prebid.adnxs.com';
+var DEFAULT_CACHE_PATH = '/pbc/v1/cache';
+/**
+ * Render mobile or amp ad
+ * @param {string} cacheHost Cache host
+ * @param {string} cachePath Cache path
+ * @param {string} uuid id to render response from cache endpoint
+ * @param {string} size size of the creative
+ * @param {string} hbPb final price of the winning bid
+ * @param {Bool} isMobileApp flag to detect mobile app
+ */
+
+function renderAmpOrMobileAd(dataObject) {
+  var targetingData = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["g" /* transformAuctionTargetingData */])(dataObject);
+  var cacheHost = targetingData.cacheHost,
+      cachePath = targetingData.cachePath,
+      uuid = targetingData.uuid,
+      size = targetingData.size,
+      hbPb = targetingData.hbPb;
+  uuid = uuid || ''; // For MoPub, creative is stored in localStorage via SDK.
+
+  var search = 'Prebid_';
+
+  if (uuid.substr(0, search.length) === search) {
+    loadFromLocalCache(uuid); //register creative right away to not miss initial geom-update
+
+    updateIframe(size);
+  } else {
+    var adUrl = "".concat(getCacheEndpoint(cacheHost, cachePath), "?uuid=").concat(uuid); //register creative right away to not miss initial geom-update
+
+    updateIframe(size);
+    Object(__WEBPACK_IMPORTED_MODULE_0__utils__["f" /* sendRequest */])(adUrl, responseCallback(Object(__WEBPACK_IMPORTED_MODULE_1__environment__["a" /* isMobileApp */])(targetingData.env), hbPb));
+  }
+}
+/**
+ * Load response from localStorage. In case of MoPub, sdk caches response
+ * @param {string} cacheId
+ */
+
+function loadFromLocalCache(cacheId) {
+  var bid = window.localStorage.getItem(cacheId);
+  var displayFn = responseCallback(true);
+  displayFn(bid);
+}
+/**
+ * update iframe by using size string to resize
+ * @param {string} size
+ */
+
+
+function updateIframe(size) {
+  if (size) {
+    var sizeArr = size.split('x').map(Number);
+    resizeIframe(sizeArr[0], sizeArr[1]);
+  } else {
+    console.log('Targeting key hb_size not found to resize creative');
+  }
+}
+/**
+ * Resize container iframe
+ * @param {Number} width width of creative
+ * @param {Number} height height of creative
+ */
+
+
+function resizeIframe(width, height) {
+  if (Object(__WEBPACK_IMPORTED_MODULE_1__environment__["b" /* isSafeFrame */])(window)) {
+    var resize = function resize(status) {
+      var newWidth = width - iframeWidth;
+      var newHeight = height - iframeHeight;
+      window.$sf.ext.expand({
+        r: newWidth,
+        b: newHeight,
+        push: true
+      });
+    };
+
+    var iframeWidth = window.innerWidth;
+    var iframeHeight = window.innerHeight;
+
+    if (iframeWidth !== width || iframeHeight !== height) {
+      window.$sf.ext.register(width, height, resize); // we need to resize the DFP container as well
+
+      window.parent.postMessage({
+        sentinel: 'amp',
+        type: 'embed-size',
+        width: width,
+        height: height
+      }, '*');
+    }
+  }
+}
+/**
+ * Returns cache endpoint concatenated with cache path
+ * @param {string} cacheHost Cache Endpoint host
+ * @param {string} cachePath Cache Endpoint path
+ */
+
+
+function getCacheEndpoint(cacheHost, cachePath) {
+  var host = typeof cacheHost === 'undefined' || cacheHost === "" ? DEFAULT_CACHE_HOST : cacheHost;
+  var path = typeof cachePath === 'undefined' || cachePath === "" ? DEFAULT_CACHE_PATH : cachePath;
+  return "https://".concat(host).concat(path);
+}
+/**
+ * Cache request Callback to display creative
+ * @param {Bool} isMobileApp
+ * @param {string} hbPb final price of the winning bid
+ * @returns {function} a callback function that parses response
+ */
+
+
+function responseCallback(isMobileApp, hbPb) {
+  return function (response) {
+    var bidObject = parseResponse(response);
+    var auctionPrice = bidObject.price || hbPb;
+    var ad = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["c" /* getCreativeCommentMarkup */])(bidObject);
+    var width = bidObject.width ? bidObject.width : bidObject.w;
+    var height = bidObject.height ? bidObject.height : bidObject.h; // When Prebid Universal Creative reads from Prebid Cache, we need to have it check for the existence of the wurl parameter. If it exists, hit it.
+
+    if (bidObject.wurl) {
+      Object(__WEBPACK_IMPORTED_MODULE_0__utils__["h" /* triggerPixel */])(decodeURIComponent(bidObject.wurl));
+    }
+
+    if (bidObject.adm) {
+      if (auctionPrice) {
+        // replace ${AUCTION_PRICE} macro with the bidObject.price or hb_pb.
+        bidObject.adm = bidObject.adm.replace('${AUCTION_PRICE}', auctionPrice);
+      } else {
+        /*
+          From OpenRTB spec 2.5: If the source value is an optional parameter that was not specified, the macro will simply be removed (i.e., replaced with a zero-length string).
+         */
+        bidObject.adm = bidObject.adm.replace('${AUCTION_PRICE}', '');
+      }
+
+      ad += isMobileApp ? constructMarkup(bidObject.adm, width, height) : bidObject.adm;
+
+      if (bidObject.nurl) {
+        ad += Object(__WEBPACK_IMPORTED_MODULE_0__utils__["a" /* createTrackPixelHtml */])(decodeURIComponent(bidObject.nurl));
+      }
+
+      if (bidObject.burl) {
+        var triggerBurl = function triggerBurl() {
+          Object(__WEBPACK_IMPORTED_MODULE_0__utils__["h" /* triggerPixel */])(bidObject.burl);
+        };
+
+        if (isMobileApp) {
+          var mraidScript = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["e" /* loadScript */])(window, 'mraid.js', function () {
+            // Success loading MRAID
+            var result = registerMRAIDViewableEvent(triggerBurl);
+
+            if (!result) {
+              triggerBurl(); // Error registering event
+            }
+          }, triggerBurl // Error loading MRAID
+          );
+        } else {
+          triggerBurl(); // Not a mobile app
+        }
+      }
+
+      Object(__WEBPACK_IMPORTED_MODULE_3__postscribeRender__["a" /* writeAdHtml */])(ad);
+    } else if (bidObject.nurl) {
+      if (isMobileApp) {
+        var adhtml = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["e" /* loadScript */])(window, bidObject.nurl);
+        ad += constructMarkup(adhtml.outerHTML, width, height);
+        Object(__WEBPACK_IMPORTED_MODULE_3__postscribeRender__["a" /* writeAdHtml */])(ad);
+      } else {
+        var nurl = bidObject.nurl;
+        var commentElm = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["b" /* getCreativeComment */])(bidObject);
+        Object(__WEBPACK_IMPORTED_MODULE_2__domHelper__["b" /* insertElement */])(commentElm, document, 'body');
+        Object(__WEBPACK_IMPORTED_MODULE_0__utils__["i" /* writeAdUrl */])(nurl, width, height);
+      }
+    }
+  };
+}
+
+;
+/**
+ * Parse response
+ * @param {string} response
+ * @returns {Object} bidObject parsed response
+ */
+
+function parseResponse(response) {
+  var bidObject;
+
+  try {
+    bidObject = JSON.parse(response);
+  } catch (error) {
+    console.log("Error parsing response from cache host: ".concat(error));
+  }
+
+  return bidObject;
+}
+/**
+ * Wrap mobile app creative in div
+ * @param {string} ad html for creative
+ * @param {Number} width width of creative
+ * @param {Number} height height of creative
+ * @returns {string} creative markup
+ */
+
+
+function constructMarkup(ad, width, height) {
+  var id = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["d" /* getUUID */])();
+  return "<div id=\"".concat(id, "\" style=\"border-style: none; position: absolute; width:100%; height:100%;\">\n      <div id=\"").concat(id, "_inner\" style=\"margin: 0 auto; width:").concat(width, "px; height:").concat(height, "px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);\">").concat(ad, "</div>\n      </div>");
+}
+
+function registerMRAIDViewableEvent(callback) {
+  function exposureChangeListener(exposure) {
+    if (exposure > 0) {
+      mraid.removeEventListener('exposureChange', exposureChangeListener);
+      callback();
+    }
+  }
+
+  function viewableChangeListener(viewable) {
+    if (viewable) {
+      mraid.removeEventListener('viewableChange', viewableChangeListener);
+      callback();
+    }
+  }
+
+  function registerViewableChecks() {
+    if (window.MRAID_ENV && parseFloat(window.MRAID_ENV.version) >= 3) {
+      mraid.addEventListener('exposureChange', exposureChangeListener);
+    } else if (window.MRAID_ENV && parseFloat(window.MRAID_ENV.version) < 3) {
+      if (mraid.isViewable()) {
+        callback();
+      } else {
+        mraid.addEventListener('viewableChange', viewableChangeListener);
+      }
+    }
+  }
+
+  function readyListener() {
+    mraid.removeEventListener('ready', readyListener);
+    registerViewableChecks();
+  }
+
+  if (window.mraid && window.MRAID_ENV) {
+    if (mraid.getState() == 'loading') {
+      mraid.addEventListener('ready', readyListener);
+    } else {
+      registerViewableChecks();
+    }
+
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/***/ }),
+/* 3 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["h"] = triggerPixel;
 /* harmony export (immutable) */ __webpack_exports__["a"] = createTrackPixelHtml;
-/* harmony export (immutable) */ __webpack_exports__["j"] = writeAdUrl;
-/* harmony export (immutable) */ __webpack_exports__["g"] = sendRequest;
+/* harmony export (immutable) */ __webpack_exports__["i"] = writeAdUrl;
+/* harmony export (immutable) */ __webpack_exports__["f"] = sendRequest;
 /* harmony export (immutable) */ __webpack_exports__["d"] = getUUID;
 /* harmony export (immutable) */ __webpack_exports__["e"] = loadScript;
 /* harmony export (immutable) */ __webpack_exports__["b"] = getCreativeComment;
 /* harmony export (immutable) */ __webpack_exports__["c"] = getCreativeCommentMarkup;
-/* harmony export (immutable) */ __webpack_exports__["h"] = transformAuctionTargetingData;
-/* harmony export (immutable) */ __webpack_exports__["f"] = parseUrl;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__domHelper__ = __webpack_require__(1);
+/* harmony export (immutable) */ __webpack_exports__["g"] = transformAuctionTargetingData;
+/* unused harmony export parseUrl */
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__domHelper__ = __webpack_require__(0);
 
 /**
  * Inserts an image pixel with the specified `url` for cookie sync
@@ -316,73 +661,16 @@ function isStr(object) {
 ;
 
 /***/ }),
-/* 1 */
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = getEmptyIframe;
-/* harmony export (immutable) */ __webpack_exports__["b"] = insertElement;
-/**
- * domHelper: a collection of helpful dom things
- */
-
-/**
- * returns a empty iframe element with specified height/width
- * @param {Number} height height iframe set to 
- * @param {Number} width width iframe set to
- * @returns {Element} iframe DOM element 
- */
-function getEmptyIframe(height, width) {
-  var frame = document.createElement('iframe');
-  frame.setAttribute('frameborder', 0);
-  frame.setAttribute('scrolling', 'no');
-  frame.setAttribute('marginheight', 0);
-  frame.setAttribute('marginwidth', 0);
-  frame.setAttribute('TOPMARGIN', 0);
-  frame.setAttribute('LEFTMARGIN', 0);
-  frame.setAttribute('allowtransparency', 'true');
-  frame.setAttribute('width', width);
-  frame.setAttribute('height', height);
-  return frame;
-}
-/**
-* Insert element to passed target
-* @param {object} elm
-* @param {object} doc
-* @param {string} target
-*/
-
-function insertElement(elm, doc, target) {
-  doc = doc || document;
-  var elToAppend;
-
-  if (target) {
-    elToAppend = doc.getElementsByTagName(target);
-  } else {
-    elToAppend = doc.getElementsByTagName('head');
-  }
-
-  try {
-    elToAppend = elToAppend.length ? elToAppend : doc.getElementsByTagName('body');
-
-    if (elToAppend.length) {
-      elToAppend = elToAppend[0];
-      elToAppend.insertBefore(elm, elToAppend.firstChild);
-    }
-  } catch (e) {}
-}
-
-/***/ }),
-/* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["b"] = isAmp;
-/* harmony export (immutable) */ __webpack_exports__["d"] = isSafeFrame;
+/* unused harmony export isAmp */
+/* harmony export (immutable) */ __webpack_exports__["b"] = isSafeFrame;
 /* unused harmony export isCrossDomain */
 /* unused harmony export canInspectWindow */
-/* harmony export (immutable) */ __webpack_exports__["a"] = canLocatePrebid;
-/* harmony export (immutable) */ __webpack_exports__["c"] = isMobileApp;
+/* unused harmony export canLocatePrebid */
+/* harmony export (immutable) */ __webpack_exports__["a"] = isMobileApp;
 /***************************************
  * Detect Environment Helper Functions
  ***************************************/
@@ -470,523 +758,12 @@ function isMobileApp(env) {
 }
 
 /***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__renderingManager__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mobileAndAmpRender__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__environment__ = __webpack_require__(2);
-/**
-* legacy.js
-* This is deprecated code, publishers should not use one .js creative to handle all different types of creative.
-* To reduce bytes transfered for each ad, publishers should use specific .js based on hb_format targeting key-value.
-*
-* This file is inserted into the prebid creative as a placeholder for the winning prebid creative. It should support the following formats:
-* - Banner
-* - AMP
-* - Mobile
-* - Outstream Video
-* - All safeFrame creatives
-*/
-
-
-
-
-window.ucTag = window.ucTag || {};
-
-window.ucTag.renderAd = function (doc, dataObject) {
-  var targetingData = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["h" /* transformAuctionTargetingData */])(dataObject);
-
-  if (Object(__WEBPACK_IMPORTED_MODULE_3__environment__["c" /* isMobileApp */])(targetingData.env) || Object(__WEBPACK_IMPORTED_MODULE_3__environment__["b" /* isAmp */])(targetingData.uuid, window)) {
-    Object(__WEBPACK_IMPORTED_MODULE_2__mobileAndAmpRender__["a" /* renderAmpOrMobileAd */])(dataObject);
-  } else {
-    Object(__WEBPACK_IMPORTED_MODULE_1__renderingManager__["a" /* renderBannerOrDisplayAd */])(doc, dataObject);
-  }
-};
-
-/***/ }),
-/* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = renderBannerOrDisplayAd;
-/* unused harmony export renderLegacy */
-/* unused harmony export renderCrossDomain */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__environment__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__domHelper__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__messaging_js__ = __webpack_require__(5);
-
-
-
-
-function renderBannerOrDisplayAd(doc, dataObject) {
-  var targetingData = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["h" /* transformAuctionTargetingData */])(dataObject);
-
-  if (!Object(__WEBPACK_IMPORTED_MODULE_1__environment__["a" /* canLocatePrebid */])(window)) {
-    renderCrossDomain(window, targetingData.adId, targetingData.adServerDomain, targetingData.pubUrl);
-  } else {
-    renderLegacy(doc, targetingData.adId);
-  }
-}
-/**
- * Calls prebid.js renderAd function to render ad
- * @param {Object} doc Document
- * @param {string} adId Id of creative to render
- */
-
-function renderLegacy(doc, adId) {
-  var w = window;
-
-  for (var i = 0; i < 10; i++) {
-    w = w.parent;
-
-    if (w.pbjs) {
-      try {
-        w.pbjs.renderAd(doc, adId);
-        break;
-      } catch (e) {
-        continue;
-      }
-    }
-  }
-}
-/**
- * Render ad in safeframe using postmessage
- * @param {string} adId Id of creative to render
- * @param {string} pubAdServerDomain publisher adserver domain name
- * @param {string} pubUrl Url of publisher page
- */
-
-function renderCrossDomain(win, adId) {
-  var pubAdServerDomain = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-  var pubUrl = arguments.length > 3 ? arguments[3] : undefined;
-  var windowLocation = win.location;
-  var adServerDomain = pubAdServerDomain || win.location.hostname;
-  var fullAdServerDomain = windowLocation.protocol + '//' + adServerDomain;
-  var sendMessage = Object(__WEBPACK_IMPORTED_MODULE_3__messaging_js__["a" /* prebidMessenger */])(pubUrl, win);
-
-  function renderAd(ev) {
-    var key = ev.message ? "message" : "data";
-    var adObject = {};
-
-    try {
-      adObject = JSON.parse(ev[key]);
-    } catch (e) {
-      return;
-    }
-
-    if (adObject.message && adObject.message === "Prebid Response" && adObject.adId === adId) {
-      try {
-        var body = win.document.body;
-        var ad = adObject.ad;
-        var url = adObject.adUrl;
-        var width = adObject.width;
-        var height = adObject.height;
-
-        if (adObject.mediaType === "video") {
-          signalRenderResult(false, {
-            reason: "preventWritingOnMainDocument",
-            message: "Cannot render video ad ".concat(adId)
-          });
-          console.log("Error trying to write ad.");
-        } else if (ad) {
-          var iframe = Object(__WEBPACK_IMPORTED_MODULE_2__domHelper__["a" /* getEmptyIframe */])(adObject.height, adObject.width);
-          body.appendChild(iframe);
-          iframe.contentDocument.open();
-          iframe.contentDocument.write(ad);
-          iframe.contentDocument.close();
-          signalRenderResult(true);
-        } else if (url) {
-          var _iframe = Object(__WEBPACK_IMPORTED_MODULE_2__domHelper__["a" /* getEmptyIframe */])(height, width);
-
-          _iframe.style.display = "inline";
-          _iframe.style.overflow = "hidden";
-          _iframe.src = url;
-          Object(__WEBPACK_IMPORTED_MODULE_2__domHelper__["b" /* insertElement */])(_iframe, document, "body");
-          signalRenderResult(true);
-        } else {
-          signalRenderResult(false, {
-            reason: "noAd",
-            message: "No ad for ".concat(adId)
-          });
-          console.log("Error trying to write ad. No ad markup or adUrl for ".concat(adId));
-        }
-      } catch (e) {
-        signalRenderResult(false, {
-          reason: "exception",
-          message: e.message
-        });
-        console.log("Error in rendering ad", e);
-      }
-    }
-
-    function signalRenderResult(success) {
-      var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
-          reason = _ref.reason,
-          message = _ref.message;
-
-      var payload = {
-        message: "Prebid Event",
-        adId: adId,
-        event: success ? "adRenderSucceeded" : "adRenderFailed"
-      };
-
-      if (!success) {
-        payload.info = {
-          reason: reason,
-          message: message
-        };
-      }
-
-      sendMessage(payload);
-    }
-  }
-
-  function requestAdFromPrebid() {
-    var message = {
-      message: 'Prebid Request',
-      adId: adId,
-      adServerDomain: fullAdServerDomain
-    };
-    sendMessage(message, renderAd);
-  }
-
-  requestAdFromPrebid();
-}
-
-/***/ }),
 /* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = prebidMessenger;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils_js__ = __webpack_require__(0);
-
-function prebidMessenger(publisherURL) {
-  var win = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : window;
-
-  var prebidDomain = function () {
-    if (publisherURL == null) {
-      return null;
-    }
-
-    var parsedUrl = Object(__WEBPACK_IMPORTED_MODULE_0__utils_js__["f" /* parseUrl */])(publisherURL);
-    return parsedUrl.protocol + '://' + parsedUrl.host;
-  }();
-
-  return function sendMessage(message, onResponse) {
-    if (prebidDomain == null) {
-      throw new Error('Missing pubUrl');
-    }
-
-    message = JSON.stringify(message);
-    var messagePort;
-
-    if (onResponse == null) {
-      win.parent.postMessage(message, prebidDomain);
-    } else {
-      var channel = new MessageChannel();
-      messagePort = channel.port1;
-      messagePort.onmessage = onResponse;
-      win.addEventListener('message', windowListener);
-      win.parent.postMessage(message, prebidDomain, [channel.port2]);
-    }
-
-    return function stopListening() {
-      if (messagePort != null) {
-        win.removeEventListener('message', windowListener);
-        messagePort.onmessage = null;
-        messagePort = null;
-      }
-    };
-
-    function windowListener(ev) {
-      if ((ev.origin || ev.originalEvent && ev.originalEvent.origin) === prebidDomain) {
-        onResponse(ev);
-      }
-    }
-  };
-}
-
-/***/ }),
-/* 6 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = renderAmpOrMobileAd;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utils__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__environment__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__domHelper__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__postscribeRender__ = __webpack_require__(7);
-
-
-
-
-var DEFAULT_CACHE_HOST = 'prebid.adnxs.com';
-var DEFAULT_CACHE_PATH = '/pbc/v1/cache';
-/**
- * Render mobile or amp ad
- * @param {string} cacheHost Cache host
- * @param {string} cachePath Cache path
- * @param {string} uuid id to render response from cache endpoint
- * @param {string} size size of the creative
- * @param {string} hbPb final price of the winning bid
- * @param {Bool} isMobileApp flag to detect mobile app
- */
-
-function renderAmpOrMobileAd(dataObject) {
-  var targetingData = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["h" /* transformAuctionTargetingData */])(dataObject);
-  var cacheHost = targetingData.cacheHost,
-      cachePath = targetingData.cachePath,
-      uuid = targetingData.uuid,
-      size = targetingData.size,
-      hbPb = targetingData.hbPb;
-  uuid = uuid || ''; // For MoPub, creative is stored in localStorage via SDK.
-
-  var search = 'Prebid_';
-
-  if (uuid.substr(0, search.length) === search) {
-    loadFromLocalCache(uuid); //register creative right away to not miss initial geom-update
-
-    updateIframe(size);
-  } else {
-    var adUrl = "".concat(getCacheEndpoint(cacheHost, cachePath), "?uuid=").concat(uuid); //register creative right away to not miss initial geom-update
-
-    updateIframe(size);
-    Object(__WEBPACK_IMPORTED_MODULE_0__utils__["g" /* sendRequest */])(adUrl, responseCallback(Object(__WEBPACK_IMPORTED_MODULE_1__environment__["c" /* isMobileApp */])(targetingData.env), hbPb));
-  }
-}
-/**
- * Load response from localStorage. In case of MoPub, sdk caches response
- * @param {string} cacheId
- */
-
-function loadFromLocalCache(cacheId) {
-  var bid = window.localStorage.getItem(cacheId);
-  var displayFn = responseCallback(true);
-  displayFn(bid);
-}
-/**
- * update iframe by using size string to resize
- * @param {string} size
- */
-
-
-function updateIframe(size) {
-  if (size) {
-    var sizeArr = size.split('x').map(Number);
-    resizeIframe(sizeArr[0], sizeArr[1]);
-  } else {
-    console.log('Targeting key hb_size not found to resize creative');
-  }
-}
-/**
- * Resize container iframe
- * @param {Number} width width of creative
- * @param {Number} height height of creative
- */
-
-
-function resizeIframe(width, height) {
-  if (Object(__WEBPACK_IMPORTED_MODULE_1__environment__["d" /* isSafeFrame */])(window)) {
-    var resize = function resize(status) {
-      var newWidth = width - iframeWidth;
-      var newHeight = height - iframeHeight;
-      window.$sf.ext.expand({
-        r: newWidth,
-        b: newHeight,
-        push: true
-      });
-    };
-
-    var iframeWidth = window.innerWidth;
-    var iframeHeight = window.innerHeight;
-
-    if (iframeWidth !== width || iframeHeight !== height) {
-      window.$sf.ext.register(width, height, resize); // we need to resize the DFP container as well
-
-      window.parent.postMessage({
-        sentinel: 'amp',
-        type: 'embed-size',
-        width: width,
-        height: height
-      }, '*');
-    }
-  }
-}
-/**
- * Returns cache endpoint concatenated with cache path
- * @param {string} cacheHost Cache Endpoint host
- * @param {string} cachePath Cache Endpoint path
- */
-
-
-function getCacheEndpoint(cacheHost, cachePath) {
-  var host = typeof cacheHost === 'undefined' || cacheHost === "" ? DEFAULT_CACHE_HOST : cacheHost;
-  var path = typeof cachePath === 'undefined' || cachePath === "" ? DEFAULT_CACHE_PATH : cachePath;
-  return "https://".concat(host).concat(path);
-}
-/**
- * Cache request Callback to display creative
- * @param {Bool} isMobileApp
- * @param {string} hbPb final price of the winning bid
- * @returns {function} a callback function that parses response
- */
-
-
-function responseCallback(isMobileApp, hbPb) {
-  return function (response) {
-    var bidObject = parseResponse(response);
-    var auctionPrice = bidObject.price || hbPb;
-    var ad = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["c" /* getCreativeCommentMarkup */])(bidObject);
-    var width = bidObject.width ? bidObject.width : bidObject.w;
-    var height = bidObject.height ? bidObject.height : bidObject.h; // When Prebid Universal Creative reads from Prebid Cache, we need to have it check for the existence of the wurl parameter. If it exists, hit it.
-
-    if (bidObject.wurl) {
-      Object(__WEBPACK_IMPORTED_MODULE_0__utils__["i" /* triggerPixel */])(decodeURIComponent(bidObject.wurl));
-    }
-
-    if (bidObject.adm) {
-      if (auctionPrice) {
-        // replace ${AUCTION_PRICE} macro with the bidObject.price or hb_pb.
-        bidObject.adm = bidObject.adm.replace('${AUCTION_PRICE}', auctionPrice);
-      } else {
-        /*
-          From OpenRTB spec 2.5: If the source value is an optional parameter that was not specified, the macro will simply be removed (i.e., replaced with a zero-length string).
-         */
-        bidObject.adm = bidObject.adm.replace('${AUCTION_PRICE}', '');
-      }
-
-      ad += isMobileApp ? constructMarkup(bidObject.adm, width, height) : bidObject.adm;
-
-      if (bidObject.nurl) {
-        ad += Object(__WEBPACK_IMPORTED_MODULE_0__utils__["a" /* createTrackPixelHtml */])(decodeURIComponent(bidObject.nurl));
-      }
-
-      if (bidObject.burl) {
-        var triggerBurl = function triggerBurl() {
-          Object(__WEBPACK_IMPORTED_MODULE_0__utils__["i" /* triggerPixel */])(bidObject.burl);
-        };
-
-        if (isMobileApp) {
-          var mraidScript = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["e" /* loadScript */])(window, 'mraid.js', function () {
-            // Success loading MRAID
-            var result = registerMRAIDViewableEvent(triggerBurl);
-
-            if (!result) {
-              triggerBurl(); // Error registering event
-            }
-          }, triggerBurl // Error loading MRAID
-          );
-        } else {
-          triggerBurl(); // Not a mobile app
-        }
-      }
-
-      Object(__WEBPACK_IMPORTED_MODULE_3__postscribeRender__["a" /* writeAdHtml */])(ad);
-    } else if (bidObject.nurl) {
-      if (isMobileApp) {
-        var adhtml = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["e" /* loadScript */])(window, bidObject.nurl);
-        ad += constructMarkup(adhtml.outerHTML, width, height);
-        Object(__WEBPACK_IMPORTED_MODULE_3__postscribeRender__["a" /* writeAdHtml */])(ad);
-      } else {
-        var nurl = bidObject.nurl;
-        var commentElm = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["b" /* getCreativeComment */])(bidObject);
-        Object(__WEBPACK_IMPORTED_MODULE_2__domHelper__["b" /* insertElement */])(commentElm, document, 'body');
-        Object(__WEBPACK_IMPORTED_MODULE_0__utils__["j" /* writeAdUrl */])(nurl, width, height);
-      }
-    }
-  };
-}
-
-;
-/**
- * Parse response
- * @param {string} response
- * @returns {Object} bidObject parsed response
- */
-
-function parseResponse(response) {
-  var bidObject;
-
-  try {
-    bidObject = JSON.parse(response);
-  } catch (error) {
-    console.log("Error parsing response from cache host: ".concat(error));
-  }
-
-  return bidObject;
-}
-/**
- * Wrap mobile app creative in div
- * @param {string} ad html for creative
- * @param {Number} width width of creative
- * @param {Number} height height of creative
- * @returns {string} creative markup
- */
-
-
-function constructMarkup(ad, width, height) {
-  var id = Object(__WEBPACK_IMPORTED_MODULE_0__utils__["d" /* getUUID */])();
-  return "<div id=\"".concat(id, "\" style=\"border-style: none; position: absolute; width:100%; height:100%;\">\n      <div id=\"").concat(id, "_inner\" style=\"margin: 0 auto; width:").concat(width, "px; height:").concat(height, "px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);\">").concat(ad, "</div>\n      </div>");
-}
-
-function registerMRAIDViewableEvent(callback) {
-  function exposureChangeListener(exposure) {
-    if (exposure > 0) {
-      mraid.removeEventListener('exposureChange', exposureChangeListener);
-      callback();
-    }
-  }
-
-  function viewableChangeListener(viewable) {
-    if (viewable) {
-      mraid.removeEventListener('viewableChange', viewableChangeListener);
-      callback();
-    }
-  }
-
-  function registerViewableChecks() {
-    if (window.MRAID_ENV && parseFloat(window.MRAID_ENV.version) >= 3) {
-      mraid.addEventListener('exposureChange', exposureChangeListener);
-    } else if (window.MRAID_ENV && parseFloat(window.MRAID_ENV.version) < 3) {
-      if (mraid.isViewable()) {
-        callback();
-      } else {
-        mraid.addEventListener('viewableChange', viewableChangeListener);
-      }
-    }
-  }
-
-  function readyListener() {
-    mraid.removeEventListener('ready', readyListener);
-    registerViewableChecks();
-  }
-
-  if (window.mraid && window.MRAID_ENV) {
-    if (mraid.getState() == 'loading') {
-      mraid.addEventListener('ready', readyListener);
-    } else {
-      registerViewableChecks();
-    }
-
-    return true;
-  } else {
-    return false;
-  }
-}
-
-/***/ }),
-/* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = writeAdHtml;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_postscribe__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_postscribe__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_postscribe___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_postscribe__);
 
 function writeAdHtml(markup) {
@@ -996,7 +773,7 @@ function writeAdHtml(markup) {
 }
 
 /***/ }),
-/* 8 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -3090,3 +2867,4 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ })
 /******/ ]);
+//# sourceMappingURL=amp.js.map
