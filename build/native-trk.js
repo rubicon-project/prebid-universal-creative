@@ -854,17 +854,18 @@ function newNativeAssetManager(win, pubUrl) {
       var flag = typeof win.pbNativeData !== 'undefined';
       if (flag && data.adId !== win.pbNativeData.adId) return;
       if (head) win.document.head.innerHTML = replace(head, data);
+      var assets = data.assets || data.ortb.assets;
 
       if (data.hasOwnProperty('rendererUrl') && data.rendererUrl || flag && win.pbNativeData.hasOwnProperty('rendererUrl')) {
         if (win.renderAd) {
-          var newHtml = win.renderAd && win.renderAd(data.assets) || '';
+          var newHtml = win.renderAd && win.renderAd(assets) || '';
           win.document.body.innerHTML = body + newHtml;
           callback && callback();
           stopListening();
           requestHeightResize(data.adId, document.body.clientHeight || document.body.offsetHeight);
         } else if (document.getElementById('pb-native-renderer')) {
           document.getElementById('pb-native-renderer').addEventListener('load', function () {
-            var newHtml = win.renderAd && win.renderAd(data.assets) || '';
+            var newHtml = win.renderAd && win.renderAd(assets) || '';
             win.document.body.innerHTML = body + newHtml;
             callback && callback();
             stopListening();
@@ -872,7 +873,7 @@ function newNativeAssetManager(win, pubUrl) {
           });
         } else {
           Object(__WEBPACK_IMPORTED_MODULE_0__utils__["a" /* loadScript */])(win, flag && win.pbNativeData.hasOwnProperty('rendererUrl') && win.pbNativeData.rendererUrl || data.rendererUrl, function () {
-            var newHtml = win.renderAd && win.renderAd(data.assets) || '';
+            var newHtml = win.renderAd && win.renderAd(assets) || '';
             win.document.body.innerHTML = body + newHtml;
             callback && callback();
             stopListening();

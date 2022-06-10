@@ -286,9 +286,10 @@ export function newNativeAssetManager(win, pubUrl) {
 
       if (head) win.document.head.innerHTML = replace(head, data);
 
+      const assets = data.assets || data.ortb.assets;
       if ((data.hasOwnProperty('rendererUrl') && data.rendererUrl) || (flag && win.pbNativeData.hasOwnProperty('rendererUrl'))) {
         if (win.renderAd) {
-          const newHtml = (win.renderAd && win.renderAd(data.assets)) || '';
+          const newHtml = (win.renderAd && win.renderAd(assets)) || '';
 
           win.document.body.innerHTML = body + newHtml;
           callback && callback();
@@ -296,7 +297,7 @@ export function newNativeAssetManager(win, pubUrl) {
           requestHeightResize(data.adId, (document.body.clientHeight || document.body.offsetHeight));
         } else if (document.getElementById('pb-native-renderer')) {
           document.getElementById('pb-native-renderer').addEventListener('load', function() {
-            const newHtml = (win.renderAd && win.renderAd(data.assets)) || '';
+            const newHtml = (win.renderAd && win.renderAd(assets)) || '';
 
             win.document.body.innerHTML = body + newHtml;
             callback && callback();
@@ -305,7 +306,7 @@ export function newNativeAssetManager(win, pubUrl) {
           });
         } else {
           loadScript(win, ((flag && win.pbNativeData.hasOwnProperty('rendererUrl') && win.pbNativeData.rendererUrl) || data.rendererUrl), function() {
-            const newHtml = (win.renderAd && win.renderAd(data.assets)) || '';
+            const newHtml = (win.renderAd && win.renderAd(assets)) || '';
 
             win.document.body.innerHTML = body + newHtml;
             callback && callback();
