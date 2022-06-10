@@ -854,7 +854,7 @@ function newNativeAssetManager(win, pubUrl) {
       var flag = typeof win.pbNativeData !== 'undefined';
       if (flag && data.adId !== win.pbNativeData.adId) return;
       if (head) win.document.head.innerHTML = replace(head, data);
-      var assets = data.assets || data.ortb.assets;
+      var assets = data.assets || data.ortb;
 
       if (data.hasOwnProperty('rendererUrl') && data.rendererUrl || flag && win.pbNativeData.hasOwnProperty('rendererUrl')) {
         if (win.renderAd) {

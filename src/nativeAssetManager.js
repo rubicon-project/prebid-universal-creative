@@ -286,7 +286,7 @@ export function newNativeAssetManager(win, pubUrl) {
 
       if (head) win.document.head.innerHTML = replace(head, data);
 
-      const assets = data.assets || data.ortb.assets;
+      const assets = data.assets || data.ortb;
       if ((data.hasOwnProperty('rendererUrl') && data.rendererUrl) || (flag && win.pbNativeData.hasOwnProperty('rendererUrl'))) {
         if (win.renderAd) {
           const newHtml = (win.renderAd && win.renderAd(assets)) || '';
