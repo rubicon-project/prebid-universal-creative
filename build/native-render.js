@@ -440,7 +440,7 @@ function newNativeRenderManager(win) {
   } // START OF MAIN CODE
 
 
-  var renderNativeAd = function renderNativeAd(doc, nativeTag) {
+  var renderNativeAd = function renderNativeAd(nativeTag) {
     window.pbNativeData = nativeTag;
     sendMessage = Object(__WEBPACK_IMPORTED_MODULE_1__messaging_js__["a" /* prebidMessenger */])(nativeTag.pubUrl, win);
     var nativeAssetManager = Object(__WEBPACK_IMPORTED_MODULE_0__nativeAssetManager__["a" /* newNativeAssetManager */])(window, nativeTag.pubUrl);
