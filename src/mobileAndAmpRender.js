@@ -1,4 +1,4 @@
-import { getCreativeCommentMarkup, triggerPixel, createTrackPixelHtml, loadScript, getCreativeComment, writeAdUrl, transformAuctionTargetingData, sendRequest, getUUID } from './utils';
+import { getCreativeCommentMarkup, triggerPixel, createTrackPixelHtml, loadScript, getCreativeComment, writeAdUrl, transformAuctionTargetingData, sendRequest, getUUID, writeAdHtml } from './utils';
 import { isSafeFrame, isMobileApp } from './environment';
 import { insertElement } from './domHelper';
 

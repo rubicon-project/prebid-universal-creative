@@ -56,14 +56,14 @@ export function newNativeRenderManager(win) {
     if (nativeTag.hasOwnProperty('adId')) {
 
       if (nativeTag.hasOwnProperty('rendererUrl') && !nativeTag.rendererUrl.match(/##.*##/i)) {
-        const scr = document.createElement('SCRIPT');
+        const scr = doc.createElement('SCRIPT');
         scr.src = nativeTag.rendererUrl,
         scr.id = 'pb-native-renderer';
-        document.body.appendChild(scr);
+        doc.body.appendChild(scr);
       }
-      nativeAssetManager.loadAssets(targetingData.adId, fireNativeCallback);
+      nativeAssetManager.loadAssets(nativeTag.adId, fireNativeCallback);
       fireNativeCallback();
-      fireNativeImpTracker(targetingData.adId);
+      fireNativeImpTracker(nativeTag.adId);
     } else {
       console.warn('Prebid Native Tag object was missing \'adId\'.');
     }
