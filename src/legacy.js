@@ -22,9 +22,9 @@ window.ucTag.renderAd = (doc, dataObject) => {
   const targetingData = transformAuctionTargetingData(dataObject);
 
   // add pucVersion to utag data objects
-  dataObject.pucVersion = '1.17.5';
-  targetingData.pucVersion = '1.17.5';
-  window.ucTag.pucVersion = '1.17.5';
+  dataObject.pucVersion = '1.17.6';
+  targetingData.pucVersion = '1.17.6';
+  window.ucTag.pucVersion = '1.17.6';
 
   if (isMobileApp(targetingData.env) || isAmp(targetingData.uuid, window)) {
     renderAmpOrMobileAd(dataObject);
